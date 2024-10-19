@@ -3,16 +3,14 @@
 
 typedef struct Node {
     int digito;
-    struct Node *left;
-    struct Node *right;
+    struct Node *left, *right;
 } Node;
 
 Node* criarNo(int digito) {
-    Node* novoNo = (Node*)malloc(sizeof(Node));
-    novoNo->digito = digito;
-    novoNo->left = NULL;
-    novoNo->right = NULL;
-    return novoNo;
+    Node* addNo = (Node*)malloc(sizeof(Node));
+    addNo->digito = digito;
+    addNo->left = addNo->right = NULL;
+    return addNo;
 }
 
 Node* inserir(Node* root, int digito) {
@@ -27,36 +25,67 @@ Node* inserir(Node* root, int digito) {
     return root;
 }
 
-void visualizar(Node* root) {
-    if (root != NULL) {
-        visualizar(root->left);
-        printf("%d ", root->digito);
-        visualizar(root->right);
+Node* findMin(Node* root) {
+    while (root->left != NULL) {
+        root = root->left;
     }
+    return root;
 }
 
-void freeTree(Node* root) {
+Node* remover(Node* root, int digito) {
+    if (root == NULL) {
+        return root;
+    }
+    if (digito < root->digito) {
+        root->left = remover(root->left, digito);
+    } else if (digito > root->digito) {
+        root->right = remover(root->right, digito);
+    } else {
+        if (root->left == NULL) {
+            Node* temp = root->right;
+            free(root);
+            return temp;
+        } else if (root->right == NULL) {
+            Node* temp = root->left;
+            free(root);
+            return temp;
+        }
+
+        Node* temp = findMin(root->right);
+        root->digito = temp->digito;
+        root->right = remover(root->right, temp->digito);
+    }
+    return root;
+}
+
+void arvoreOrdem(Node* root) {
     if (root != NULL) {
-        freeTree(root->left);
-        freeTree(root->right);
-        free(root);
+        arvoreOrdem(root->left);
+        printf("%d ", root->digito);
+        arvoreOrdem(root->right);
     }
 }
 
 int main() {
     Node* root = NULL;
-    int cpf[11];
+    int cpfDigitos[11];
 
-    printf("Dê os 11 dígitos do CPF: ");
+    printf("Insira 11 dígitos do CPF:\n");
     for (int i = 0; i < 11; i++) {
-        scanf("%d", &cpf[i]);
-        root = inserir(root, cpf[i]);
+        scanf("%d", &cpfDigitos[i]);
+        root = inserir(root, cpfDigitos[i]);
     }
 
-    printf("Os dígitos do CPF armazenados na árvore em ordem: ");
-    visualizar(root);
+    printf("Árvore em ordem: ");
+    arvoreOrdem(root);
     printf("\n");
 
-    freeTree(root);
+    int digitoRemover = cpfDigitos[6];
+    root = remover(root, digitoRemover);
+
+    printf("Árvore em ordem (após remover o dígito): ");
+    arvoreOrdem(root);
+    printf("\n");
+
     return 0;
 }
